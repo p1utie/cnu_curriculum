@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>교육과정 현장 탐구 프로젝트</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #222;
+            font-family: 'Pretendard', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 1920x1080 고정 컨테이너 */
+        #presentation-container {
+            width: 1920px;
+            height: 1080px;
+            background-color: #ffffff;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+            transform-origin: center center;
+        }
+
+        /* 슬라이드 공통 */
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            padding: 60px 80px;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+            background: white;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        /* 헤더 스타일 */
+        h2 {
+            font-size: 55px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            border-bottom: 4px solid #3498db;
+            padding-bottom: 15px;
+            display: inline-block;
+        }
+
+        /* Q&A 슬라이드 레이아웃 */
+        .qa-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            height: 80%;
+            justify-content: center;
+        }
+
+        .question-box {
+            background-color: #eef2f7;
+            border-left: 15px solid #3498db;
+            padding: 40px;
+            border-radius: 0 20px 20px 0;
+        }
+
+        .question-text {
+            font-size: 38px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .answer-box {
+            background-color: #fff;
+            padding: 30px 40px;
+            border: 2px solid #eee;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        .answer-text {
+            font-size: 34px;
+            color: #444;
+            line-height: 1.6;
+        }
+
+        .answer-text li {
+            margin-bottom: 15px;
+            list-style-type: none;
+        }
+        
+        .answer-text li::before {
+            content: "💬";
+            margin-right: 15px;
+        }
+
+        /* 분석 슬라이드 레이아웃 (좌우 분할) */
+        .split-content {
+            display: flex;
+            height: 80%;
+            gap: 50px;
+        }
+
+        .left-panel {
+            flex: 1;
+            background-color: #f8f9fa;
+            padding: 40px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .right-panel {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+        }
+
+        .quote-box {
+            font-family: 'Pretendard', serif;
+            font-style: italic;
+            font-size: 32px;
+            color: #555;
+            position: relative;
+            line-height: 1.5;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .analysis-title {
+            font-size: 38px;
+            font-weight: bold;
+            color: #e74c3c; /* 분석 강조색 */
+            margin-bottom: 25px;
+        }
+
+        .analysis-list li {
+            font-size: 30px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        /* 표지 */
+        .slide-title {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .slide-title h1 { font-size: 90px; color: #2c3e50; margin-bottom: 30px; }
+        .slide-title p { font-size: 40px; color: #666; }
+
+        /* 네비게이션 */
+        .nav-btn {
+            position: absolute;
+            bottom: 30px;
+            padding: 15px 30px;
+            font-size: 20px;
+            background-color: rgba(0,0,0,0.05);
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            z-index: 100;
+        }
+        .nav-btn:hover { background-color: rgba(0,0,0,0.2); color: white; }
+        #prev-btn { left: 30px; }
+        #next-btn { right: 30px; }
+        .page-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="presentation-container">
+        
+        <div class="slide slide-title active">
+            <h1>교육과정 현장 탐구</h1>
+            <p>어린이집 교육과정의 실제와 듀이(Dewey) 이론의 적용</p>
+            <p style="margin-top: 80px; font-size: 30px; color: #888;">팀 활동 및 인터뷰 분석 보고<br>충남대 김다영, 박재윤, 장지빈, 전유찬, 하지원 / 경북대 최규원</p>
+        </div>
+
+        <div class="slide">
+            <h2>1. 팀 활동 진행 과정</h2>
+            <div style="display: flex; align-items: center; justify-content: space-around; height: 70%; text-align: center;">
+                <div style="width: 28%; padding: 30px; background: #f0f8ff; border-radius: 20px;">
+                    <div style="font-size: 80px; margin-bottom: 20px;">🗣️</div>
+                    <h3>1차: 아이디어</h3>
+                    <p style="font-size: 28px; color: #666;">체조, 종교, 과학관 등<br>다양한 주제 탐색</p>
+                </div>
+                <div style="font-size: 60px; color: #ccc;">➜</div>
+                <div style="width: 28%; padding: 30px; background: #fff0f0; border-radius: 20px;">
+                    <div style="font-size: 80px; margin-bottom: 20px;">🚫</div>
+                    <h3>2차: 주제 선정</h3>
+                    <p style="font-size: 28px; color: #666;">섭외 불가/안전 문제로<br>기존 안 제외</p>
+                    <strong style="font-size: 32px; color: #e74c3c;">[어린이집] 최종 선정</strong>
+                </div>
+                <div style="font-size: 60px; color: #ccc;">➜</div>
+                <div style="width: 28%; padding: 30px; background: #f0fff4; border-radius: 20px;">
+                    <div style="font-size: 80px; margin-bottom: 20px;">📝</div>
+                    <h3>3차: 인터뷰</h3>
+                    <p style="font-size: 28px; color: #666;">만 0세 반 담임교사<br>(경력 7년, 배옥란 교사)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 교사 소개</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q1. 간단하게 자기소개 부탁드립니다.</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>경력/배경:</strong> 현재 경기도 광교 소재 어린이집 근무 (경력 7년, 만 0세 담임). 아이 3명의 어머니.</li>
+                        <li><strong>마음가짐:</strong> 아이들을 사랑으로 교육하며, 우리나라의 미래인 아이들을 보며 뿌듯함을 느낌.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 직업관</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q2. 어린이집 교사로 일할 수 있었던 원동력은?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>아이들의 순수함:</strong> 흰 도화지 같은 아이들이 세상과 처음 만나는 과정을 지켜보는 기쁨.</li>
+                        <li><strong>성취의 감동:</strong> 서툰 손길로 깍두기 무를 썰어보려는 모습 등, 작은 성취에서 오는 대견함과 행복한 에너지.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 생활 지도</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q3. 특별히 강조하시는 규칙이나 태도는?<br>Q3-1. 이를 통해 무엇을 기대하시나요?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>핵심 규칙:</strong> 전염병 예방을 위한 <strong>'손 씻기'</strong>, 스스로 하는 <strong>'장난감 정리'</strong>.</li>
+                        <li><strong>기대 효과:</strong> 작은 공동체 생활을 통해 질서와 배려를 배우고, 건강한 생활 습관 및 사회성 발달 도모.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 개별화 교육</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q4. 발달 속도가 다른 아이들이 함께할 때,<br>활동 난이도는 누구에게 맞추시나요?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>개별 맞춤 기획:</strong> 같은 활동이라도 아이 한 명 한 명의 발달 과정(개월 수, 성별 등)을 고려함.</li>
+                        <li><strong>눈높이 교육:</strong> 특정 수준(잘하는 아이/못하는 아이)에 맞추기보다, 각 아이의 현재 수준에 맞춰 놀이를 진행.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 핵심 가치</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q5. 최근 영아 교육과정에서<br>가장 중요하게 강조되는 가치는?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>상호 작용:</strong> 교사-영유아 간의 신뢰와 애착 형성이 모든 발달(언어, 인지, 정서)의 기초.</li>
+                        <li><strong>존중과 사랑:</strong> 영유아는 무한한 잠재력을 가진 존재이며, 환경과 교사의 역할이 이를 이끌어내는 데 중요함.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 표준 보육 과정</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q6. 영아 교육과정에서 가장 중요하게<br>여겨야 할 부분은 무엇인가요?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>놀이 중심·아동 중심:</strong> 제4차 표준 보육 과정에 따라 아이들의 자율성과 창의성을 높이는 방향.</li>
+                        <li><strong>흥미 지원:</strong> 교사는 아이들의 흥미와 관심에 따라 놀이를 할 수 있도록 지원하는 역할을 수행.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 교육과정 편성</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q7. 교육과정 편성은 어떻게 진행하나요?<br>Q7-1. 고려하는 요인은 무엇인가요?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>편성 절차:</strong> 연간 계획을 바탕으로 계절별, 월간, 주간 계획을 교사가 연령별로 편성.</li>
+                        <li><strong>고려 요인:</strong> 국가 수준 보육과정 목표, 어린이집 철학, 영유아의 발달 수준, 그리고 지역사회의 특성.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 자체 프로그램</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q8. 교사 차원의 자체적인 교육과정<br>운영 사례가 있다면?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>Happy Day:</strong> 매주 수요일, 모든 연령이 참여할 수 있는 특별 활동 운영.</li>
+                        <li><strong>활동 예시:</strong> 자동차 데이, 솔방울 놀이, 달팽이 삶 알아보기, 김장 활동(깍두기) 등 체험 위주.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 교사 협력</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q9. 동료 교사들과 의견이 다를 때<br>어떻게 조율하시나요?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>교사 회의:</strong> 정기적인 회의 시간을 통해 의견을 나누고 조율함.</li>
+                        <li><strong>경험 존중:</strong> 경력이 많은 교사들의 경험과 의견을 경청하고 참고하여 결정하는 편.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 융통성</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q10. 계획과 달리 엉뚱한 것에 흥미를 보일 때<br>계획을 고수하시나요?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>흥미 추구:</strong> 아이가 다른 놀이에 집중하면, 그 흥미를 존중하고 친구들에게 소개하는 시간을 가짐.</li>
+                        <li><strong>확장된 놀이:</strong> 계획을 강요하지 않고, 아이의 관심사를 반영하여 확장된 놀이를 제공함.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 현장의 어려움</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q11. 누리과정 목표 구현 시 어려운 점은?<br>(그 이유는?)</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>교사 대 아동 비율:</strong> 교사 1명이 5~6명의 아이를 지도해야 해서 개별 지원이 버거움 (체력적 한계).</li>
+                        <li><strong>업무 과중:</strong> 수업 준비 외에도 처리해야 할 서류 작업이 생각보다 많아 시간적으로 부족함.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 가정 연계</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q12. 가정에서의 놀이 경험이 중요한가요?<br>Q12-1. 연결하기 위한 방법은?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>중요성:</strong> 가정 내 경험은 영유아의 성격, 기질, 이해도에 결정적인 영향을 미침.</li>
+                        <li><strong>연결 방법:</strong> 부모와 어린이집 간의 지속적인 <strong>'소통'</strong>이 가장 핵심적인 방법.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>2. 인터뷰: 평가</h2>
+            <div class="qa-container">
+                <div class="question-box">
+                    <div class="question-text">Q13. 아이들의 발달을 평가할 때는<br>어떤 기준을 활용하시나요?</div>
+                </div>
+                <div class="answer-box">
+                    <ul class="answer-text">
+                        <li><strong>발달 지표:</strong> 영아기는 신체 성장이 빠른 시기이므로 신체/운동 발달 지표를 중요하게 활용.</li>
+                        <li><strong>관찰 평가:</strong> 능동적으로 세상을 탐색하고 주도적으로 활동하는지 관찰하여 평가.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="slide">
+            <h2>3-1. 분석: 교사의 가치관</h2>
+            <div class="split-content">
+                <div class="left-panel">
+                    <h3>[인터뷰 원문]</h3>
+                    <div class="quote-box">
+                        "손가락만한 무를 빵칼로 열심히 썰어보려고 하는 모습이 너무나 기특해 보였습니다."
+                    </div>
+                    <div style="margin-top: 20px; font-weight: bold; color: #555; text-align: right;">- 인터뷰 답변 중 -</div>
+                </div>
+                <div class="right-panel">
+                    <div class="analysis-title">듀이(Dewey): 과정 중심 교육</div>
+                    <ul class="analysis-list">
+                        <li><strong>결과보다 과정:</strong> 정답(완벽한 깍두기)이 아닌, 아이가 경험하고 도전하는 '정신적 과정의 질'을 성장의 척도로 봄.</li>
+                        <li><strong>환경 제공자:</strong> 교사는 지식 전달자가 아닌, 아동의 잠재력을 이끌어내는 환경을 조성하는 조력자.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>3-2. 분석: 교육과정의 내용</h2>
+            <div class="split-content">
+                <div class="left-panel">
+                    <h3>[인터뷰 원문]</h3>
+                    <div class="quote-box">
+                        "가장 신경 쓰는 것은 손 씻기와 정리 정돈... 규칙적으로 생활할 수 있는 프로그램이 되어 있습니다."
+                    </div>
+                    <div style="margin-top: 20px; font-weight: bold; color: #555; text-align: right;">- 인터뷰 답변 중 -</div>
+                </div>
+                <div class="right-panel">
+                    <div class="analysis-title">듀이(Dewey): 삶과 연계된 교과</div>
+                    <ul class="analysis-list">
+                        <li><strong>생활이 곧 교육:</strong> "삶과 관련되어 이해되지 않은 교과는 무기력하다." (손 씻기, 정리는 삶 그 자체)</li>
+                        <li><strong>도덕적/사회적 가치:</strong> 지식 교육 이전에 공동체 생활을 위한 질서와 도덕적 습관 형성을 우선시함.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>3-3. 분석: 계획 및 운영</h2>
+            <div class="split-content">
+                <div class="left-panel">
+                    <h3>[인터뷰 원문]</h3>
+                    <div class="quote-box">
+                        "아이가 다른 것에 흥미를 느끼면... 그 놀이를 친구들에게 소개하고 확장된 놀이를 제공해 줍니다."
+                    </div>
+                    <div style="margin-top: 20px; font-weight: bold; color: #555; text-align: right;">- 인터뷰 답변 중 -</div>
+                </div>
+                <div class="right-panel">
+                    <div class="analysis-title">듀이(Dewey): 아동·흥미 중심</div>
+                    <ul class="analysis-list">
+                        <li><strong>인위적 구속 제거:</strong> 계획을 고집하지 않고 아동의 진정한 흥미를 교육의 출발점으로 삼음.</li>
+                        <li><strong>경험의 재구성:</strong> 교사가 준비한 'Happy Day' 등도 아이들의 눈높이와 경험에 맞춰 지속적으로 재구성됨.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>3-4. 분석: 외적 요소 및 현실</h2>
+            <div class="split-content">
+                <div class="left-panel">
+                    <h3>[인터뷰 원문]</h3>
+                    <div class="quote-box">
+                        "가정에서의 놀이 경험이 아이의 성격에 많은 영향을 미칩니다... 교사 1명이 5~6명을 지도하기는 버겁습니다."
+                    </div>
+                    <div style="margin-top: 20px; font-weight: bold; color: #555; text-align: right;">- 인터뷰 답변 중 -</div>
+                </div>
+                <div class="right-panel">
+                    <div class="analysis-title">교육의 통합성과 현실적 한계</div>
+                    <ul class="analysis-list">
+                        <li><strong>가정 연계(듀이):</strong> 학교 교육과 가정의 경험은 단절되지 않고 상호작용해야 함. (통합적 경험 강조)</li>
+                        <li><strong>현실적 과제:</strong> 이상적인 개별화 교육(듀이)을 실현하기에는 높은 교사 대 아동 비율과 업무 부담이 존재함.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <button id="prev-btn" class="nav-btn">❮ 이전</button>
+        <button id="next-btn" class="nav-btn">다음 ❯</button>
+        <div class="page-indicator">1 / 19</div>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const indicator = document.querySelector('.page-indicator');
+        let currentSlide = 0;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === index) slide.classList.add('active');
+            });
+            indicator.textContent = `${index + 1} / ${slides.length}`;
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        function resize() {
+            const container = document.getElementById('presentation-container');
+            const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+            container.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+    </script>
+</body>
+</html>
